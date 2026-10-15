@@ -4,27 +4,27 @@
 
 ## 目录结构
 
-| 路径 | 内容 |
-| --- | --- |
-| `src/labN/` | 你在各实验中要写的源文件与该实验的说明 `README.md`。源文件中是你要写的函数；实验一的源文件另有几个已经写出的示例 |
-| `include/mcpu.h` | 全部接口：机器状态、各实验函数的声明与要求（以 `Lab N:` 开头的注释）、框架函数的声明、`todo` |
-| `frame/` | 框架代码：主程序、装载器、物理内存、提交日志、反汇编器，以及后面的实验完成之前使用的替代实现 |
-| `guest/` | 在模拟机器上运行的客户机程序（C 与汇编源码，`mini.h` 提供系统调用）；`guest/ollama/` 是第三讲的 `mini_ollama`，生成 `guest/mini-ollama` 与 `guest/mini-ollama-simd` |
-| `tools/` | `mkmodel.py` 生成 `mini-ollama` 的小模型 |
-| `tests/` | 评测脚本 `labN/run.sh`、参考结果、单个函数的检查程序 `unit.c`（生成 `mini-unit`）、生成客户机程序的 `lab1/*.py`、独立计算参考值的 `reference.py`、源文件检查 `srccheck.sh` 与 `symbols.txt`，见“评测” |
+| 路径             | 内容                                                                                                                                                                                                  |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/labN/`      | 你在各实验中要写的源文件与该实验的说明 `README.md`。源文件中是你要写的函数；实验一的源文件另有几个已经写出的示例                                                                                      |
+| `include/mcpu.h` | 全部接口：机器状态、各实验函数的声明与要求（以 `Lab N:` 开头的注释）、框架函数的声明、`todo`                                                                                                          |
+| `frame/`         | 框架代码：主程序、装载器、物理内存、提交日志、反汇编器，以及后面的实验完成之前使用的替代实现                                                                                                          |
+| `guest/`         | 在模拟机器上运行的客户机程序（C 与汇编源码，`mini.h` 提供系统调用）；`guest/ollama/` 是第三讲的 `mini_ollama`，生成 `guest/mini-ollama` 与 `guest/mini-ollama-simd`                                   |
+| `tools/`         | `mkmodel.py` 生成 `mini-ollama` 的小模型                                                                                                                                                              |
+| `tests/`         | 评测脚本 `labN/run.sh`、参考结果、单个函数的检查程序 `unit.c`（生成 `mini-unit`）、生成客户机程序的 `lab1/*.py`、独立计算参考值的 `reference.py`、源文件检查 `srccheck.sh` 与 `symbols.txt`，见“评测” |
 
 仓库中的实验目录只含到已发布的实验为止用到的文件，现在发布的是实验一；后面的实验发布时加入各自的文件，本文件随之更新（见“获取代码与更新”）。
 
 ## 六个实验
 
-| 实验 | 内容 |
-| --- | --- |
-| 1 | 指令解释器 |
-| 2 | 五级流水线的 CPU |
-| 3 | 目标文件的装载 |
-| 4 | 页表与 TLB |
-| 5 | 高速缓存 |
-| 6 | 系统调用与块设备 |
+| 实验 | 内容             |
+| ---- | ---------------- |
+| 1    | 指令解释器       |
+| 2    | 五级流水线的 CPU |
+| 3    | 目标文件的装载   |
+| 4    | 页表与 TLB       |
+| 5    | 高速缓存         |
+| 6    | 系统调用与块设备 |
 
 实验一的源文件是 `src/lab1/modrm.c`、`src/lab1/alu.c` 与 `src/lab1/interp.c`，内容有三项：ModRM、SIB 与位移的解析，解释器与反汇编器 `./mini-cpu --disasm 程序` 共用；整数运算的结果与标志位，包括加、减、逻辑运算、`inc`、`dec`、`neg`、移位、乘法与除法；指令解释器，即一个主循环，按操作码直接修改寄存器与内存。
 
@@ -36,11 +36,11 @@
 
 你在 **x86-64 的 Linux** 上完成实验：
 
-| 机器 | 做法 |
-| --- | --- |
-| x86-64 Linux | 直接运行 |
-| x86-64 Windows | 在 WSL2（Ubuntu）中完成，命令与 Linux 完全相同 |
-| arm64 macOS | 用 x86-64 的 Linux 容器（`docker run --platform linux/amd64`）或课程服务器 |
+| 机器           | 做法                                                                       |
+| -------------- | -------------------------------------------------------------------------- |
+| x86-64 Linux   | 直接运行                                                                   |
+| x86-64 Windows | 在 WSL2（Ubuntu）中完成，命令与 Linux 完全相同                             |
+| arm64 macOS    | 用 x86-64 的 Linux 容器（`docker run --platform linux/amd64`）或课程服务器 |
 
 依赖 x86-64 Linux 的四处：客户机程序是 x86-64 的 ELF 文件；`Makefile` 用到 GNU ld 的 `--wrap`；`frame/loader.c` 用 `<elf.h>`；`make check` 把生成的客户机程序在本机运行一次，以它的输出作为期望值（`tests/lab1/*.py`）。macOS 上没有其中任何一项，因此不提供原生做法。
 
@@ -104,16 +104,16 @@ FAIL   0/2   simd: scalar and vector loops, n = 19 and 1000
         | expected: scalar = -28
         | simd   = -28
         | got:      scalar = -28
-        | simd   = 
-        | 
+        | simd   =
+        |
         | fault (illegal instruction) after 667 instructions:
         | rax  0000000000000005  rcx  0000000000000013  rdx  0000000000000005  rbx  0000000000000013
 FAIL   0/2   tinytf: seed 1 and two random seeds
         | expected: prompt = 14 9 2 11
         | tokens = 1 8 15 9 8 11 2 7
         | logits = 7685
-        | got:      
-        | 
+        | got:
+        |
         | fault (illegal instruction) after 69488 instructions:
         | rax  0000000000000000  rcx  0000000000000010  rdx  0000000000000000  rbx  0000000000000000
         | (guest/tinytf 1 8)
@@ -123,18 +123,18 @@ FAIL   0/2   simd, tinytf: commit logs (vector registers)
         | (cksum of the commit log of guest/simd: checksum and size in bytes)
 FAIL   0/2   random vector instructions: registers and memory
         | (tests/lab1/vecops.py 16351 60)
-        | 
+        |
         | fault (illegal instruction) after 24 instructions:
         | rax  0000000000000000  rcx  0000000000000000  rdx  0000000000000000  rbx  0000000000000000
         | the output of mini-cpu ends before the record of block 0
 FAIL   0/2   mini-ollama-simd: dot_q4 on ymm registers
         | (python3 tools/mkmodel.py 7370 > m.gguf; mini-cpu  guest/mini-ollama-simd "the cat in the hat" 10 < m.gguf)
         | expected: jjjjjjjjjj
-        | got:      
+        | got:
         | < prompt tokens:    19
         | < generated tokens: 10
         | < logits checksum:  2903821179
-        | > 
+        | >
 lab 1 score 90/100
 total score 90/100
 ```
@@ -159,14 +159,14 @@ sh tests/lab1/run.sh
 
 ### 测试检查的内容
 
-| 类别 | 检查方式 |
-| --- | --- |
-| 单个函数 | `mini-unit` 直接调用一个文件中的函数，没有失败的检查（见上文） |
-| 程序输出 | 客户机程序的 stdout 与期望值逐字相同；`sum`、`matmul`、`simd` 的期望值由 `python3 tests/reference.py` 独立计算 |
+| 类别       | 检查方式                                                                                                                                                                      |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 单个函数   | `mini-unit` 直接调用一个文件中的函数，没有失败的检查（见上文）                                                                                                                |
+| 程序输出   | 客户机程序的 stdout 与期望值逐字相同；`sum`、`matmul`、`simd` 的期望值由 `python3 tests/reference.py` 独立计算                                                                |
 | 生成的程序 | `tests/lab1/flagops.py`、`condops.py`、`randops.py` 生成的程序在本机 CPU 与模拟器上输出相同；`vecops.py` 的期望输出在 Python 中计算；`memops.py` 的反汇编与 `objdump -d` 相同 |
-| 缺页 | `guest/deep`（越过栈）与 `guest/readonly`（写代码页）在固定的指令之后、固定的地址缺页 |
-| 提交日志 | `--commit` 写出的日志的 `cksum`（校验和与字节数）与 `tests/lab1/expected.txt` 相同 |
-| 随机参数 | 见下一节 |
+| 缺页       | `guest/deep`（越过栈）与 `guest/readonly`（写代码页）在固定的指令之后、固定的地址缺页                                                                                         |
+| 提交日志   | `--commit` 写出的日志的 `cksum`（校验和与字节数）与 `tests/lab1/expected.txt` 相同                                                                                            |
+| 随机参数   | 见下一节                                                                                                                                                                      |
 
 ### 随机参数
 
@@ -178,13 +178,13 @@ SEED=31274 make check
 
 实验一中随机的内容：
 
-| 随机的内容 | 期望值的来源 |
-| --- | --- |
-| `guest/tinytf` 的种子与生成的 token 数 | `python3 tests/reference.py tinytf 种子 个数` |
-| `tests/lab1/memops.py` 生成的内存操作数 | 汇编后 `objdump -d` 的输出 |
-| `flagops.py` 生成的操作数与输入标志，`randops.py` 的随机整数指令 | 同一程序在本机 CPU 上运行的输出 |
-| `vecops.py` 的随机向量指令 | `vecops.py --want` 在 Python 中计算的输出 |
-| `tools/mkmodel.py` 生成的小模型的种子，`mini-ollama` 的提示词与 token 数 | 同一程序在本机 CPU 上运行的输出 |
+| 随机的内容                                                               | 期望值的来源                                  |
+| ------------------------------------------------------------------------ | --------------------------------------------- |
+| `guest/tinytf` 的种子与生成的 token 数                                   | `python3 tests/reference.py tinytf 种子 个数` |
+| `tests/lab1/memops.py` 生成的内存操作数                                  | 汇编后 `objdump -d` 的输出                    |
+| `flagops.py` 生成的操作数与输入标志，`randops.py` 的随机整数指令         | 同一程序在本机 CPU 上运行的输出               |
+| `vecops.py` 的随机向量指令                                               | `vecops.py --want` 在 Python 中计算的输出     |
+| `tools/mkmodel.py` 生成的小模型的种子，`mini-ollama` 的提示词与 token 数 | 同一程序在本机 CPU 上运行的输出               |
 
 `guest/tinytf [种子 [个数]]` 是一个整数运算的小型 Transformer（一层因果自注意力与一层 MLP），全部矩阵乘法调用 `guest/linear.s` 的 `linear_simd`，按贪心方式生成 1 到 12 个 token：
 
@@ -199,12 +199,12 @@ logits = 1124
 
 `make check` 在运行测试之前执行 `tests/srccheck.sh`，用 `make` 的编译选项逐个编译 `src/lab1` .. `src/labN` 中的 `.c` 文件，检查目标文件：
 
-| 检查 | 规则 |
-| --- | --- |
+| 检查             | 规则                                                                                                                             |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | 使用的函数与变量 | 你在每个实验中只能使用 `tests/symbols.txt` 中该实验一行列出的框架接口、`libc` 一行列出的库函数，以及该实验自己的文件中定义的名字 |
-| 定义的名字 | 不能与 libc、libm 中的名字相同（这样的定义会替换整个程序中的库函数），不能以 `__` 开头 |
-| 节 | 只能有代码、数据与调试信息的节，代码只能在 `.text` 节；不能有 `.init_array` 等在 `main` 之前执行的节 |
-| 指令 | 代码中不能有 `syscall`、`sysenter` 与 `int $0x80` |
+| 定义的名字       | 不能与 libc、libm 中的名字相同（这样的定义会替换整个程序中的库函数），不能以 `__` 开头                                           |
+| 节               | 只能有代码、数据与调试信息的节，代码只能在 `.text` 节；不能有 `.init_array` 等在 `main` 之前执行的节                             |
+| 指令             | 代码中不能有 `syscall`、`sysenter` 与 `int $0x80`                                                                                |
 
 例如实验一的源文件不能直接调用 `mem_read` 与 `dram_ptr`，读写客户机的内存要经过 `load`、`store`、`rm_get`、`rm_set` 等辅助函数。检查不通过时打印每一个问题，不运行测试，总分为 0。
 

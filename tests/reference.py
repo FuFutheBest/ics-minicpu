@@ -10,6 +10,7 @@ far less likely to agree on a wrong result than on the right one.
     python3 tests/reference.py simd [n]
     python3 tests/reference.py tinytf [seed [n]]
 """
+
 import sys
 
 
@@ -23,14 +24,13 @@ def sum_ref(n):
 def matmul_ref(n):
     a = [[i + 2 * j for j in range(n)] for i in range(n)]
     b = [[3 * i - j + 1 for j in range(n)] for i in range(n)]
-    c = [[sum(a[i][k] * b[k][j] for k in range(n)) for j in range(n)]
-         for i in range(n)]
+    c = [[sum(a[i][k] * b[k][j] for k in range(n)) for j in range(n)] for i in range(n)]
     return sum(sum(row) for row in c)
 
 
 def simd_ref(n):
     s = 5 + sum((i % 7 - 3) * (2 * i + 1) for i in range(n))
-    return (s + 2**31) % 2**32 - 2**31          # an int in the guest
+    return (s + 2**31) % 2**32 - 2**31  # an int in the guest
 
 
 def tinytf_ref(seed, n):
@@ -42,13 +42,13 @@ def tinytf_ref(seed, n):
     T = P + 12
     if not 1 <= n <= T - P:
         n = 8
-    st = [(seed * 2654435761 ^ 0x9e3779b9) & 0xffffffff or 1]
+    st = [(seed * 2654435761 ^ 0x9E3779B9) & 0xFFFFFFFF or 1]
 
     def weight():
         r = st[0]
-        r ^= (r << 13) & 0xffffffff
+        r ^= (r << 13) & 0xFFFFFFFF
         r ^= r >> 17
-        r ^= (r << 5) & 0xffffffff
+        r ^= (r << 5) & 0xFFFFFFFF
         st[0] = r
         return r % 16 - 8
 
@@ -57,7 +57,7 @@ def tinytf_ref(seed, n):
 
     def dot(w, x, b=0):
         s = b + sum(p * q for p, q in zip(w, x))
-        assert -2**31 <= s < 2**31
+        assert -(2**31) <= s < 2**31
         return s
 
     def mul(w, x, b=None):
@@ -90,7 +90,10 @@ def tinytf_ref(seed, n):
             total += sum(logits)
             tok.append(logits.index(max(logits)))
     return "prompt = %s\ntokens = %s\nlogits = %d" % (
-        " ".join(map(str, tok[:P])), " ".join(map(str, tok[P:])), total)
+        " ".join(map(str, tok[:P])),
+        " ".join(map(str, tok[P:])),
+        total,
+    )
 
 
 which = sys.argv[1] if len(sys.argv) > 1 else "matmul"
@@ -101,7 +104,11 @@ elif which == "matmul":
 elif which == "simd":
     print(simd_ref(int(sys.argv[2]) if len(sys.argv) > 2 else 19))
 elif which == "tinytf":
-    print(tinytf_ref(int(sys.argv[2]) if len(sys.argv) > 2 else 1,
-                     int(sys.argv[3]) if len(sys.argv) > 3 else 8))
+    print(
+        tinytf_ref(
+            int(sys.argv[2]) if len(sys.argv) > 2 else 1,
+            int(sys.argv[3]) if len(sys.argv) > 3 else 8,
+        )
+    )
 else:
     sys.exit("unknown program: " + which)

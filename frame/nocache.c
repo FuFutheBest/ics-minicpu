@@ -6,28 +6,23 @@
 
 #include "mcpu.h"
 
-void cache_init(unsigned sets, unsigned ways)
-{
-    (void)sets;
-    (void)ways;
+void cache_init(unsigned sets, unsigned ways) {
+  (void)sets;
+  (void)ways;
 }
 
-void cache_read(uint64_t pa, void *dst, unsigned n)
-{
-    uint8_t *p = dram_ptr(pa, n);
-    if (p)
-        memcpy(dst, p, n);
-    else
-        memset(dst, 0, n);
+void cache_read(uint64_t pa, void *dst, unsigned n) {
+  uint8_t *p = dram_ptr(pa, n);
+  if (p)
+    memcpy(dst, p, n);
+  else
+    memset(dst, 0, n);
 }
 
-void cache_write(uint64_t pa, const void *src, unsigned n)
-{
-    uint8_t *p = dram_ptr(pa, n);
-    if (p)
-        memcpy(p, src, n);
+void cache_write(uint64_t pa, const void *src, unsigned n) {
+  uint8_t *p = dram_ptr(pa, n);
+  if (p)
+    memcpy(p, src, n);
 }
 
-void cache_flush(void)
-{
-}
+void cache_flush(void) {}

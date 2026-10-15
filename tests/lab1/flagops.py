@@ -25,11 +25,16 @@ from all 64 bits instead of the operand size is wrong.
 tests/lab1/run.sh assembles the program, runs it on this machine and under
 mini-cpu, and compares the two outputs.
 """
+
 import random
 import sys
 
-SIZES = {1: ("b", "%bl", "%cl", "%al"), 2: ("w", "%bx", "%cx", "%ax"),
-         4: ("l", "%ebx", "%ecx", "%eax"), 8: ("q", "%rbx", "%rcx", "%rax")}
+SIZES = {
+    1: ("b", "%bl", "%cl", "%al"),
+    2: ("w", "%bx", "%cx", "%ax"),
+    4: ("l", "%ebx", "%ecx", "%eax"),
+    8: ("q", "%rbx", "%rcx", "%rax"),
+}
 # adc and sbb twice: their carry in makes the edge cases of CF
 ALU = ["add", "or", "adc", "sbb", "and", "sub", "xor", "cmp", "adc", "sbb"]
 FLAGS = [(0x1, "CF"), (0x4, "PF"), (0x40, "ZF"), (0x80, "SF"), (0x800, "OF")]
@@ -43,9 +48,26 @@ def operand(rng, size):
     """A 64-bit value whose low size bytes are often an edge case."""
     bits = size * 8
     top = 1 << (bits - 1)
-    low = rng.choice([0, 0, 1, 2, top - 1, top, top + 1, 2 * top - 1, 2 * top - 1,
-                      2 * top - 2, 0x7f, 0x80, 0xff, rng.randrange(2 * top),
-                      rng.randrange(2 * top), rng.randrange(2 * top)])
+    low = rng.choice(
+        [
+            0,
+            0,
+            1,
+            2,
+            top - 1,
+            top,
+            top + 1,
+            2 * top - 1,
+            2 * top - 1,
+            2 * top - 2,
+            0x7F,
+            0x80,
+            0xFF,
+            rng.randrange(2 * top),
+            rng.randrange(2 * top),
+            rng.randrange(2 * top),
+        ]
+    )
     high = 0 if size == 8 else rng.choice([0, rng.randrange(1 << 64)]) >> bits << bits
     return (high | low) & ((1 << 64) - 1)
 
@@ -53,7 +75,7 @@ def operand(rng, size):
 def immediate(rng, size):
     """An immediate gas encodes for this size: imm8, or imm16/imm32."""
     if rng.random() < 0.5 or size == 1:
-        return rng.choice([0, 1, 0x7f, -1, -0x80, rng.randrange(-0x80, 0x80)])
+        return rng.choice([0, 1, 0x7F, -1, -0x80, rng.randrange(-0x80, 0x80)])
     lim = 1 << (16 if size == 2 else 32) - 1
     return rng.choice([lim - 1, -lim, rng.randrange(-lim, lim)])
 
@@ -62,7 +84,7 @@ def instruction(rng):
     """(text, size, mask, dest) of one random instruction."""
     size = rng.choice([1, 2, 4, 8])
     suf, dst, src, acc = SIZES[size]
-    mask = 0x8c5
+    mask = 0x8C5
     kind = rng.choice(["alu", "alu", "alu", "imm", "imm", "test", "unary", "shift"])
     if kind == "imm" and rng.random() < 0.3:
         dst = acc
@@ -71,8 +93,12 @@ def instruction(rng):
     elif kind == "imm":
         text = "%s%s $%d,%s" % (rng.choice(ALU), suf, immediate(rng, size), dst)
     elif kind == "test":
-        text = rng.choice(["test%s %s,%s" % (suf, src, dst),
-                           "test%s $%d,%s" % (suf, immediate(rng, size), dst)])
+        text = rng.choice(
+            [
+                "test%s %s,%s" % (suf, src, dst),
+                "test%s $%d,%s" % (suf, immediate(rng, size), dst),
+            ]
+        )
     elif kind == "unary":
         text = "%s%s %s" % (rng.choice(["inc", "dec", "neg"]), suf, dst)
     else:
@@ -93,22 +119,47 @@ def main():
         text, size, mask, dest = instruction(rng)
         fin = sum(m for m, _ in FLAGS if rng.random() < 0.5)
         if text.startswith(("adc", "sbb")) and rng.random() < 0.5:
-            fin |= 0x1                                  # carry in, more often
+            fin |= 0x1  # carry in, more often
         a, b = operand(rng, size), operand(rng, size)
-        out.append("# %d: %s    %s = %#x, %%rcx = %#x, flags in: %s"
-                   % (k, text, dest, a, b, names(fin)))
-        out += ["\tpush $%#x" % fin, "\tpopfq",
-                "\tmovabs $%#x,%s" % (a, dest), "\tmovabs $%#x,%%rcx" % b,
-                "\t" + text,
-                "\tpushfq", "\tpop %rdx", "\tand $%#x,%%edx" % mask,
-                "\tmov %s,(%%rdi)" % dest, "\tmov %dx,8(%rdi)", "\tlea 10(%rdi),%rdi"]
-    out += ["\tlea buf(%rip),%rsi", "\tmov $%d,%%ebx" % (10 * n),
-            "more:", "\tmov $1,%eax", "\tmov $1,%edi", "\tmov %rbx,%rdx", "\tsyscall",
-            "\tmov $1,%edi", "\ttest %rax,%rax", "\tjle done",
-            "\tadd %rax,%rsi", "\tsub %rax,%rbx", "\tjne more",
-            "\txor %edi,%edi",
-            "done:", "\tmov $60,%eax", "\tsyscall",
-            "\t.bss", "buf:", "\t.zero %d" % (10 * n)]
+        out.append(
+            "# %d: %s    %s = %#x, %%rcx = %#x, flags in: %s"
+            % (k, text, dest, a, b, names(fin))
+        )
+        out += [
+            "\tpush $%#x" % fin,
+            "\tpopfq",
+            "\tmovabs $%#x,%s" % (a, dest),
+            "\tmovabs $%#x,%%rcx" % b,
+            "\t" + text,
+            "\tpushfq",
+            "\tpop %rdx",
+            "\tand $%#x,%%edx" % mask,
+            "\tmov %s,(%%rdi)" % dest,
+            "\tmov %dx,8(%rdi)",
+            "\tlea 10(%rdi),%rdi",
+        ]
+    out += [
+        "\tlea buf(%rip),%rsi",
+        "\tmov $%d,%%ebx" % (10 * n),
+        "more:",
+        "\tmov $1,%eax",
+        "\tmov $1,%edi",
+        "\tmov %rbx,%rdx",
+        "\tsyscall",
+        "\tmov $1,%edi",
+        "\ttest %rax,%rax",
+        "\tjle done",
+        "\tadd %rax,%rsi",
+        "\tsub %rax,%rbx",
+        "\tjne more",
+        "\txor %edi,%edi",
+        "done:",
+        "\tmov $60,%eax",
+        "\tsyscall",
+        "\t.bss",
+        "buf:",
+        "\t.zero %d" % (10 * n),
+    ]
     print("\n".join(out))
 
 

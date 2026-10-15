@@ -21,12 +21,35 @@ the framework with cond(); the two jumps are the cases of interp.c.
 tests/lab1/run.sh assembles the program, runs it on this machine and under
 mini-cpu, and compares the two outputs.
 """
+
 import struct
 import sys
 
-CC = ["o", "no", "b", "ae", "e", "ne", "be", "a", "s", "ns", "p", "np", "l", "ge", "le", "g"]
+CC = [
+    "o",
+    "no",
+    "b",
+    "ae",
+    "e",
+    "ne",
+    "be",
+    "a",
+    "s",
+    "ns",
+    "p",
+    "np",
+    "l",
+    "ge",
+    "le",
+    "g",
+]
 FLAGS = [(0x1, "CF"), (0x4, "PF"), (0x40, "ZF"), (0x80, "SF"), (0x800, "OF")]
-FIELDS = ["set%s %%bl", "cmov%s %%ecx,%%eax", "j%s rel8, 1 = taken", "j%s rel32, 1 = taken"]
+FIELDS = [
+    "set%s %%bl",
+    "cmov%s %%ecx,%%eax",
+    "j%s rel8, 1 = taken",
+    "j%s rel32, 1 = taken",
+]
 REC = 16
 
 
@@ -42,27 +65,50 @@ def program():
     out = ["\t.globl _start", "\t.text", "_start:", "\tlea buf(%rip),%rdi"]
     for k in range(512):
         cc, f = k // 32, flags_of(k)
-        out += ["# %d: condition %s, flags: %s" % (k, CC[cc], names(f)),
-                "\tpush $%#x" % f, "\tpopfq",
-                "\tmov $0,%ebx", "\tmov $1,%eax", "\tmov $2,%ecx",
-                "\tset%s %%bl" % CC[cc],
-                "\tcmov%s %%ecx,%%eax" % CC[cc],
-                "\tmov $1,%edx",
-                "\tj%s 1f" % CC[cc],
-                "\tmov $0,%edx",
-                "1:\tmov $1,%esi",
-                "\t.byte 0x0f, %#x" % (0x80 + cc),     # jcc rel32
-                "\t.long 2f - . - 4",
-                "\tmov $0,%esi",
-                "2:\tmov %ebx,(%rdi)", "\tmov %eax,4(%rdi)",
-                "\tmov %edx,8(%rdi)", "\tmov %esi,12(%rdi)", "\tlea 16(%rdi),%rdi"]
-    out += ["\tlea buf(%rip),%rsi", "\tmov $%d,%%ebx" % (REC * 512),
-            "more:", "\tmov $1,%eax", "\tmov $1,%edi", "\tmov %rbx,%rdx", "\tsyscall",
-            "\tmov $1,%edi", "\ttest %rax,%rax", "\tjle done",
-            "\tadd %rax,%rsi", "\tsub %rax,%rbx", "\tjne more",
-            "\txor %edi,%edi",
-            "done:", "\tmov $60,%eax", "\tsyscall",
-            "\t.bss", "buf:", "\t.zero %d" % (REC * 512)]
+        out += [
+            "# %d: condition %s, flags: %s" % (k, CC[cc], names(f)),
+            "\tpush $%#x" % f,
+            "\tpopfq",
+            "\tmov $0,%ebx",
+            "\tmov $1,%eax",
+            "\tmov $2,%ecx",
+            "\tset%s %%bl" % CC[cc],
+            "\tcmov%s %%ecx,%%eax" % CC[cc],
+            "\tmov $1,%edx",
+            "\tj%s 1f" % CC[cc],
+            "\tmov $0,%edx",
+            "1:\tmov $1,%esi",
+            "\t.byte 0x0f, %#x" % (0x80 + cc),  # jcc rel32
+            "\t.long 2f - . - 4",
+            "\tmov $0,%esi",
+            "2:\tmov %ebx,(%rdi)",
+            "\tmov %eax,4(%rdi)",
+            "\tmov %edx,8(%rdi)",
+            "\tmov %esi,12(%rdi)",
+            "\tlea 16(%rdi),%rdi",
+        ]
+    out += [
+        "\tlea buf(%rip),%rsi",
+        "\tmov $%d,%%ebx" % (REC * 512),
+        "more:",
+        "\tmov $1,%eax",
+        "\tmov $1,%edi",
+        "\tmov %rbx,%rdx",
+        "\tsyscall",
+        "\tmov $1,%edi",
+        "\ttest %rax,%rax",
+        "\tjle done",
+        "\tadd %rax,%rsi",
+        "\tsub %rax,%rbx",
+        "\tjne more",
+        "\txor %edi,%edi",
+        "done:",
+        "\tmov $60,%eax",
+        "\tsyscall",
+        "\t.bss",
+        "buf:",
+        "\t.zero %d" % (REC * 512),
+    ]
     return "\n".join(out)
 
 
@@ -70,7 +116,7 @@ def explain(want_path, got_path):
     want = open(want_path, "rb").read()
     got = open(got_path, "rb").read()
     for k in range(512):
-        w, g = want[k * REC:(k + 1) * REC], got[k * REC:(k + 1) * REC]
+        w, g = want[k * REC : (k + 1) * REC], got[k * REC : (k + 1) * REC]
         if w == g:
             continue
         if len(g) < REC:

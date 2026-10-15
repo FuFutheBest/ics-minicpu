@@ -7,11 +7,10 @@
  */
 #include "mcpu.h"
 
-int syscall_enter(mcpu *c)
-{
+int syscall_enter(mcpu *c) {
 #if LAB >= 3
-    if (c->r[RAX] >= HOSTCALL_NR)
-        return hostcall(c, (unsigned)(c->r[RAX] - HOSTCALL_NR));
+  if (c->r[RAX] >= HOSTCALL_NR)
+    return hostcall(c, (unsigned)(c->r[RAX] - HOSTCALL_NR));
 #endif
-    return sys_dispatch(c);
+  return sys_dispatch(c);
 }

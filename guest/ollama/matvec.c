@@ -11,18 +11,17 @@
    a half-precision scale d, then 16 bytes. Byte j has weight j in its low
    4 bits and weight j + 16 in its high 4 bits; a stored value q means the
    weight d * (q - 8). */
-void matvec(float *y, const struct tensor *w, const float *x)
-{
-    const uint8_t *blk = w->data;
-    for (size_t r = 0; r < w->rows; r++) {
-        float sum = 0;
-        for (size_t c = 0; c < w->cols; c += 32, blk += 18) {
-            float d = fp16[blk[0] | blk[1] << 8];
-            for (int j = 0; j < 16; j++) {
-                int lo = (blk[2 + j] & 15) - 8, hi = (blk[2 + j] >> 4) - 8;
-                sum += d * lo * x[c + j] + d * hi * x[c + j + 16];
-            }
-        }
-        y[r] = sum;
+void matvec(float *y, const struct tensor *w, const float *x) {
+  const uint8_t *blk = w->data;
+  for (size_t r = 0; r < w->rows; r++) {
+    float sum = 0;
+    for (size_t c = 0; c < w->cols; c += 32, blk += 18) {
+      float d = fp16[blk[0] | blk[1] << 8];
+      for (int j = 0; j < 16; j++) {
+        int lo = (blk[2 + j] & 15) - 8, hi = (blk[2 + j] >> 4) - 8;
+        sum += d * lo * x[c + j] + d * hi * x[c + j + 16];
+      }
     }
+    y[r] = sum;
+  }
 }

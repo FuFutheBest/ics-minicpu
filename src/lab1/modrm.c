@@ -50,23 +50,25 @@
  */
 #include "mcpu.h"
 
-unsigned modrm_decode(const uint8_t *p, unsigned n, uint8_t rex, modrm_t *m)
-{
-    /* TODO: decode the ModRM byte p[0], then the SIB byte and the
-     * displacement if the operand has them, and fill every field of *m.
-     *
-     *   1. mod, sub and reg from p[0]. With mod 3: rm, and base = index =
-     *      -1, scale = 1, rip = dsize = 0, disp = 0; return 1.
-     *   2. A memory operand: rm = -1, then base, index, scale and rip from
-     *      the rm field, or from the SIB byte when rm is 100. Without an
-     *      index, scale is 1.
-     *   3. dsize from mod and from whether there is a base; disp from the
-     *      next dsize bytes, little endian, sign-extended.
-     *   4. Return the number of bytes used.
-     *
-     * Before reading a byte check that it is one of the n bytes at p;
-     * return 0 if it is not.
-     */
-    (void)p; (void)n; (void)rex; (void)m;
-    todo("modrm_decode");
+unsigned modrm_decode(const uint8_t *p, unsigned n, uint8_t rex, modrm_t *m) {
+  /* TODO: decode the ModRM byte p[0], then the SIB byte and the
+   * displacement if the operand has them, and fill every field of *m.
+   *
+   *   1. mod, sub and reg from p[0]. With mod 3: rm, and base = index =
+   *      -1, scale = 1, rip = dsize = 0, disp = 0; return 1.
+   *   2. A memory operand: rm = -1, then base, index, scale and rip from
+   *      the rm field, or from the SIB byte when rm is 100. Without an
+   *      index, scale is 1.
+   *   3. dsize from mod and from whether there is a base; disp from the
+   *      next dsize bytes, little endian, sign-extended.
+   *   4. Return the number of bytes used.
+   *
+   * Before reading a byte check that it is one of the n bytes at p;
+   * return 0 if it is not.
+   */
+  (void)p;
+  (void)n;
+  (void)rex;
+  (void)m;
+  todo("modrm_decode");
 }

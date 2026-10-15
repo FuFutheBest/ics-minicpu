@@ -7,18 +7,17 @@
  * global history can. */
 #include "mini.h"
 
-int guest_main(int argc, char **argv)
-{
-    (void)argv;
-    long n = argc > 1 ? 4000 : 400;
-    long s = 0;
-    for (long i = 0; i < n; ++i) {
-        if ((i & 3) < 2)                /* taken taken not-taken not-taken */
-            s += i;
-        else
-            s -= 1;
-    }
-    puts("s = ");
-    putint(s);
-    return 0;
+int guest_main(int argc, char **argv) {
+  (void)argv;
+  long n = argc > 1 ? 4000 : 400;
+  long s = 0;
+  for (long i = 0; i < n; ++i) {
+    if ((i & 3) < 2) /* taken taken not-taken not-taken */
+      s += i;
+    else
+      s -= 1;
+  }
+  puts("s = ");
+  putint(s);
+  return 0;
 }

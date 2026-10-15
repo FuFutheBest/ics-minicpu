@@ -8,10 +8,9 @@
 
 /* The sum over j = 0 .. 15 of (b[j] & 15) * x[j] + (b[j] >> 4) * x[j + 16]:
    b is the 16 bytes of a Q4_0 block, x has 32 integers. */
-int dot_q4(const unsigned char *b, const int *x)
-{
-    int sum = 0;
-    for (int j = 0; j < 16; j++)
-        sum += (b[j] & 15) * x[j] + (b[j] >> 4) * x[j + 16];
-    return sum;
+int dot_q4(const unsigned char *b, const int *x) {
+  int sum = 0;
+  for (int j = 0; j < 16; j++)
+    sum += (b[j] & 15) * x[j] + (b[j] >> 4) * x[j + 16];
+  return sum;
 }

@@ -16,35 +16,31 @@
 
 FILE *memtrace_out;
 
-int  __real_mmu_translate(uint64_t va, int acc, uint64_t *pa);
+int __real_mmu_translate(uint64_t va, int acc, uint64_t *pa);
 void __real_cache_read(uint64_t pa, void *dst, unsigned n);
 void __real_cache_write(uint64_t pa, const void *src, unsigned n);
 void __real_cache_flush(void);
 
-int __wrap_mmu_translate(uint64_t va, int acc, uint64_t *pa)
-{
-    if (memtrace_out)
-        fprintf(memtrace_out, "t %lx\n", (unsigned long)va);
-    return __real_mmu_translate(va, acc, pa);
+int __wrap_mmu_translate(uint64_t va, int acc, uint64_t *pa) {
+  if (memtrace_out)
+    fprintf(memtrace_out, "t %lx\n", (unsigned long)va);
+  return __real_mmu_translate(va, acc, pa);
 }
 
-void __wrap_cache_read(uint64_t pa, void *dst, unsigned n)
-{
-    if (memtrace_out)
-        fprintf(memtrace_out, "r %lx %u\n", (unsigned long)pa, n);
-    __real_cache_read(pa, dst, n);
+void __wrap_cache_read(uint64_t pa, void *dst, unsigned n) {
+  if (memtrace_out)
+    fprintf(memtrace_out, "r %lx %u\n", (unsigned long)pa, n);
+  __real_cache_read(pa, dst, n);
 }
 
-void __wrap_cache_write(uint64_t pa, const void *src, unsigned n)
-{
-    if (memtrace_out)
-        fprintf(memtrace_out, "w %lx %u\n", (unsigned long)pa, n);
-    __real_cache_write(pa, src, n);
+void __wrap_cache_write(uint64_t pa, const void *src, unsigned n) {
+  if (memtrace_out)
+    fprintf(memtrace_out, "w %lx %u\n", (unsigned long)pa, n);
+  __real_cache_write(pa, src, n);
 }
 
-void __wrap_cache_flush(void)
-{
-    if (memtrace_out)
-        fputs("f\n", memtrace_out);
-    __real_cache_flush();
+void __wrap_cache_flush(void) {
+  if (memtrace_out)
+    fputs("f\n", memtrace_out);
+  __real_cache_flush();
 }

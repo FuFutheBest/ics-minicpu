@@ -14,17 +14,16 @@ int linear_simd(const int *w, const int *x, int b, int n);
 
 static int w[1000], x[1000];
 
-int guest_main(int argc, char **argv)
-{
-    (void)argv;
-    int n = argc > 1 ? 1000 : 19;
-    for (int i = 0; i < n; ++i) {
-        w[i] = i % 7 - 3;
-        x[i] = 2 * i + 1;
-    }
-    puts("scalar = ");
-    putint(linear_scalar(w, x, 5, n));
-    puts("simd   = ");
-    putint(linear_simd(w, x, 5, n));
-    return 0;
+int guest_main(int argc, char **argv) {
+  (void)argv;
+  int n = argc > 1 ? 1000 : 19;
+  for (int i = 0; i < n; ++i) {
+    w[i] = i % 7 - 3;
+    x[i] = 2 * i + 1;
+  }
+  puts("scalar = ");
+  putint(linear_scalar(w, x, 5, n));
+  puts("simd   = ");
+  putint(linear_simd(w, x, 5, n));
+  return 0;
 }

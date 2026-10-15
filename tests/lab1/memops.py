@@ -11,11 +11,28 @@ encodings that need care: %rsp and %r12 as a base (always a SIB byte),
 The test assembles the file with gcc -c and compares the output of
 mini-cpu --disasm with that of objdump -d.
 """
+
 import random
 import sys
 
-Q = ["rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-     "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"]
+Q = [
+    "rax",
+    "rcx",
+    "rdx",
+    "rbx",
+    "rsp",
+    "rbp",
+    "rsi",
+    "rdi",
+    "r8",
+    "r9",
+    "r10",
+    "r11",
+    "r12",
+    "r13",
+    "r14",
+    "r15",
+]
 
 
 def reg(n, size):
@@ -34,7 +51,7 @@ def disp(r):
         return ""
     if k == 1:
         return str(r.randrange(-128, 128))
-    return str(r.randrange(-2**31, 2**31))
+    return str(r.randrange(-(2**31), 2**31))
 
 
 def mem(r):

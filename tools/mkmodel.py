@@ -23,6 +23,7 @@ token_embd is both the first and the last layer. Its rows are all zero
 except those of the printable ASCII bytes 0x20 .. 0x7e: every other token
 scores exactly 0 and is chosen only when no ASCII token scores above 0.
 """
+
 import math
 import struct
 import sys
@@ -37,36 +38,50 @@ ROPE_BASE = 10000.0
 EPS = 1e-6
 ALIGNMENT = 32
 
-U32, F32, STR, ARR = 4, 6, 8, 9                 # GGUF value types
-TENSOR_F32, TENSOR_Q4_0 = 0, 2                  # GGUF tensor types
+U32, F32, STR, ARR = 4, 6, 8, 9  # GGUF value types
+TENSOR_F32, TENSOR_Q4_0 = 0, 2  # GGUF tensor types
 
-SP = "\u0120"                                   # a space inside a token's text
-MERGES = [                                      # the earliest merge first
-    ("t", "h"), ("h", "e"), ("i", "n"), ("e", "r"), ("a", "n"), ("th", "e"),
-    (SP, "t"), (SP, "a"), (SP, "the"), (SP, "in"),
-    ("u", "s"), ("us", "er"),                                   # user
-    ("s", "t"), ("a", "s"), ("as", "s"), ("i", "st"), ("an", "t"),
-    ("ass", "ist"), ("assist", "ant"),                          # assistant
+SP = "\u0120"  # a space inside a token's text
+MERGES = [  # the earliest merge first
+    ("t", "h"),
+    ("h", "e"),
+    ("i", "n"),
+    ("e", "r"),
+    ("a", "n"),
+    ("th", "e"),
+    (SP, "t"),
+    (SP, "a"),
+    (SP, "the"),
+    (SP, "in"),
+    ("u", "s"),
+    ("us", "er"),  # user
+    ("s", "t"),
+    ("a", "s"),
+    ("as", "s"),
+    ("i", "st"),
+    ("an", "t"),
+    ("ass", "ist"),
+    ("assist", "ant"),  # assistant
 ]
 
 
 class Xorshift32:
     def __init__(self, seed):
-        self.state = (seed * 2654435761 ^ 0x9e3779b9) & 0xffffffff or 1
+        self.state = (seed * 2654435761 ^ 0x9E3779B9) & 0xFFFFFFFF or 1
 
     def next(self):
         s = self.state
-        s ^= (s << 13) & 0xffffffff
+        s ^= (s << 13) & 0xFFFFFFFF
         s ^= s >> 17
-        s ^= (s << 5) & 0xffffffff
+        s ^= (s << 5) & 0xFFFFFFFF
         self.state = s
         return s
 
-    def unit(self):                             # a number in [0, 1)
-        return self.next() / 2.0 ** 32
+    def unit(self):  # a number in [0, 1)
+        return self.next() / 2.0**32
 
 
-def printable(b):                               # as in guest/ollama/tokenizer.c
+def printable(b):  # as in guest/ollama/tokenizer.c
     return 33 <= b <= 126 or 161 <= b <= 172 or b >= 174
 
 
@@ -76,7 +91,7 @@ def vocabulary():
     other = [b for b in range(256) if not printable(b)]
     order = shown + other
     tokens = [chr(b) for b in shown] + [chr(256 + i) for i in range(len(other))]
-    ascii_tokens = {i for i, b in enumerate(order) if 0x20 <= b <= 0x7e}
+    ascii_tokens = {i for i, b in enumerate(order) if 0x20 <= b <= 0x7E}
     tokens += ["<|im_start|>", "<|im_end|>"]
     tokens += [left + right for left, right in MERGES]
     return tokens, ascii_tokens
@@ -98,7 +113,7 @@ def q4_matrix(rng, rows, cols, live=None):
             if live is None or r in live:
                 out += bytes(rng.next() >> 24 for _ in range(16))
             else:
-                out += b"\x88" * 16             # q = 8 in both halves
+                out += b"\x88" * 16  # q = 8 in both halves
     return bytes(out)
 
 
@@ -119,7 +134,7 @@ def pair(key, kind, value):
         body = struct.pack("<f", value)
     elif kind == STR:
         body = string(value)
-    else:                                       # an array of strings
+    else:  # an array of strings
         body = struct.pack("<IQ", STR, len(value)) + b"".join(map(string, value))
     return string(key) + struct.pack("<I", kind) + body
 
@@ -144,14 +159,21 @@ def main(argv):
         pair("tiny.attention.layer_norm_rms_epsilon", F32, EPS),
         pair("tiny.rope.freq_base", F32, ROPE_BASE),
         pair("tokenizer.ggml.tokens", ARR, tokens),
-        pair("tokenizer.ggml.merges", ARR, [left + " " + right for left, right in MERGES]),
+        pair(
+            "tokenizer.ggml.merges", ARR, [left + " " + right for left, right in MERGES]
+        ),
         pair("tokenizer.ggml.eos_token_id", U32, tokens.index("<|im_end|>")),
     ]
 
     # (name, columns, rows, bytes): a matrix is rows x columns in Q4_0, a
     # vector has no rows and is stored as floats.
     tensors = [
-        ("token_embd.weight", e, len(tokens), q4_matrix(rng, len(tokens), e, ascii_tokens)),
+        (
+            "token_embd.weight",
+            e,
+            len(tokens),
+            q4_matrix(rng, len(tokens), e, ascii_tokens),
+        ),
         ("output_norm.weight", e, 0, gains(rng, e)),
     ]
     for l in range(N_LAYER):

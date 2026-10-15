@@ -32,128 +32,133 @@
 
 uint64_t syscall_count;
 
-enum { SYS_read = 0, SYS_write = 1, SYS_open = 2, SYS_close = 3, SYS_fstat = 5,
-       SYS_mmap = 9, SYS_brk = 12, SYS_getpid = 39, SYS_exit = 60,
-       SYS_exit_group = 231 };
+enum {
+  SYS_read = 0,
+  SYS_write = 1,
+  SYS_open = 2,
+  SYS_close = 3,
+  SYS_fstat = 5,
+  SYS_mmap = 9,
+  SYS_brk = 12,
+  SYS_getpid = 39,
+  SYS_exit = 60,
+  SYS_exit_group = 231
+};
 
 #define MMAP_BASE 0x00007f0000000000ULL /* mappings go upwards from here */
 
-static long sys_brk(mcpu *c, uint64_t want)
-{
-    if (want == 0 || want < c->brk)
-        return (long)c->brk;
-    uint64_t p = c->brk;
-    while (p < want) {
-        uint64_t f = mmu_alloc_frame();
-        if (!f || mmu_map(p, f, PTE_P | PTE_W | PTE_U) < 0)
-            return (long)c->brk;
-        p += PAGE_SIZE;
-    }
-    mmu_tlb_flush();
-    c->brk = p;
+static long sys_brk(mcpu *c, uint64_t want) {
+  if (want == 0 || want < c->brk)
     return (long)c->brk;
+  uint64_t p = c->brk;
+  while (p < want) {
+    uint64_t f = mmu_alloc_frame();
+    if (!f || mmu_map(p, f, PTE_P | PTE_W | PTE_U) < 0)
+      return (long)c->brk;
+    p += PAGE_SIZE;
+  }
+  mmu_tlb_flush();
+  c->brk = p;
+  return (long)c->brk;
 }
 
 /* fstat(fd, buf) of descriptor 0, 1 or 2 of the host: struct stat of Linux
    x86-64, 144 bytes, with st_mode (offset 24) and st_size (offset 48); the
    other fields are zero. */
-static long sys_fstat(mcpu *c, uint64_t fd, uint64_t buf)
-{
-    struct stat sb;
-    uint8_t out[144] = { 0 };
+static long sys_fstat(mcpu *c, uint64_t fd, uint64_t buf) {
+  struct stat sb;
+  uint8_t out[144] = {0};
 
-    if (fd > 2)
-        return -EBADF;
-    if (fstat((int)fd, &sb) < 0)
-        return -errno;
-    uint32_t mode = (uint32_t)sb.st_mode;
-    uint64_t size = (uint64_t)sb.st_size;
-    memcpy(out + 24, &mode, sizeof mode);
-    memcpy(out + 48, &size, sizeof size);
-    return mem_write(c, buf, out, sizeof out) < 0 ? -EFAULT : 0;
+  if (fd > 2)
+    return -EBADF;
+  if (fstat((int)fd, &sb) < 0)
+    return -errno;
+  uint32_t mode = (uint32_t)sb.st_mode;
+  uint64_t size = (uint64_t)sb.st_size;
+  memcpy(out + 24, &mode, sizeof mode);
+  memcpy(out + 48, &size, sizeof size);
+  return mem_write(c, buf, out, sizeof out) < 0 ? -EFAULT : 0;
 }
 
 /* mmap(NULL, len, PROT_READ, MAP_PRIVATE, 0, 0): the file on standard
    input, read-only, at an address chosen here. */
 static long sys_mmap(uint64_t addr, uint64_t len, uint64_t prot, uint64_t flags,
-                     uint64_t fd, uint64_t off)
-{
-    static uint64_t next = MMAP_BASE;
+                     uint64_t fd, uint64_t off) {
+  static uint64_t next = MMAP_BASE;
 
-    if (addr != 0 || prot != 1 || flags != 2 || fd != 0 || off != 0) {
-        fprintf(stderr, "mmap: only mmap(NULL, len, PROT_READ, MAP_PRIVATE, 0, 0),"
-                        " a read-only mapping of standard input, is implemented\n");
-        return -EINVAL;
-    }
-    uint64_t size = dram_rom(0);
-    if (len == 0 || size == 0)
-        return -EINVAL;                                 /* standard input is not a file */
-    if (len > size)
-        len = size;
-    uint64_t va = next;
-    for (uint64_t o = 0; o < len; o += PAGE_SIZE)
-        if (mmu_map(va + o, ROM_BASE + o, PTE_P | PTE_U) < 0)
-            return -ENOMEM;
-    mmu_tlb_flush();
-    next += (len + PAGE_SIZE - 1) & ~(uint64_t)(PAGE_SIZE - 1);
-    return (long)va;
+  if (addr != 0 || prot != 1 || flags != 2 || fd != 0 || off != 0) {
+    fprintf(stderr, "mmap: only mmap(NULL, len, PROT_READ, MAP_PRIVATE, 0, 0),"
+                    " a read-only mapping of standard input, is implemented\n");
+    return -EINVAL;
+  }
+  uint64_t size = dram_rom(0);
+  if (len == 0 || size == 0)
+    return -EINVAL; /* standard input is not a file */
+  if (len > size)
+    len = size;
+  uint64_t va = next;
+  for (uint64_t o = 0; o < len; o += PAGE_SIZE)
+    if (mmu_map(va + o, ROM_BASE + o, PTE_P | PTE_U) < 0)
+      return -ENOMEM;
+  mmu_tlb_flush();
+  next += (len + PAGE_SIZE - 1) & ~(uint64_t)(PAGE_SIZE - 1);
+  return (long)va;
 }
 
-int sys_dispatch(mcpu *c)
-{
-    uint64_t nr = c->r[RAX], a0 = c->r[RDI], a1 = c->r[RSI], a2 = c->r[RDX];
-    long ret = -ENOSYS;
-    ++syscall_count;
+int sys_dispatch(mcpu *c) {
+  uint64_t nr = c->r[RAX], a0 = c->r[RDI], a1 = c->r[RSI], a2 = c->r[RDX];
+  long ret = -ENOSYS;
+  ++syscall_count;
 
-    switch (nr) {
-    case SYS_write: {
-        char buf[4096];
-        unsigned n = a2 > sizeof buf ? sizeof buf : (unsigned)a2;
-        if (mem_read(c, a1, buf, n, MEM_READ) < 0) {
-            ret = -EFAULT;
-            break;
-        }
-        ret = write(a0 == 2 ? 2 : 1, buf, n);
-        break;
+  switch (nr) {
+  case SYS_write: {
+    char buf[4096];
+    unsigned n = a2 > sizeof buf ? sizeof buf : (unsigned)a2;
+    if (mem_read(c, a1, buf, n, MEM_READ) < 0) {
+      ret = -EFAULT;
+      break;
     }
-    case SYS_brk:
-        ret = sys_brk(c, a0);
-        break;
-    case SYS_fstat:
-        ret = sys_fstat(c, a0, a1);
-        break;
-    case SYS_mmap:
-        ret = sys_mmap(a0, a1, a2, c->r[R10], c->r[R8], c->r[R9]);
-        break;
-    case SYS_getpid:
-        ret = 1;
-        break;
-    case SYS_exit:
-    case SYS_exit_group:
-        c->halted = 1;
-        ret = 0;
-        break;
+    ret = write(a0 == 2 ? 2 : 1, buf, n);
+    break;
+  }
+  case SYS_brk:
+    ret = sys_brk(c, a0);
+    break;
+  case SYS_fstat:
+    ret = sys_fstat(c, a0, a1);
+    break;
+  case SYS_mmap:
+    ret = sys_mmap(a0, a1, a2, c->r[R10], c->r[R8], c->r[R9]);
+    break;
+  case SYS_getpid:
+    ret = 1;
+    break;
+  case SYS_exit:
+  case SYS_exit_group:
+    c->halted = 1;
+    ret = 0;
+    break;
 #if LAB >= 6
-    case SYS_read:
-        ret = sys_read(c, a0, a1, a2);
-        break;
-    case SYS_open:
-        ret = sys_open(c, a0);
-        break;
-    case SYS_close:
-        ret = sys_close(c, a0);
-        break;
-    default:
-        fprintf(stderr, "unimplemented system call %lu, rip=%#lx\n",
-                (unsigned long)nr, (unsigned long)c->rip);
-        break;
+  case SYS_read:
+    ret = sys_read(c, a0, a1, a2);
+    break;
+  case SYS_open:
+    ret = sys_open(c, a0);
+    break;
+  case SYS_close:
+    ret = sys_close(c, a0);
+    break;
+  default:
+    fprintf(stderr, "unimplemented system call %lu, rip=%#lx\n",
+            (unsigned long)nr, (unsigned long)c->rip);
+    break;
 #else
-    default:
-        fprintf(stderr, "system call %lu is implemented in lab 6, rip=%#lx\n",
-                (unsigned long)nr, (unsigned long)c->rip);
-        break;
+  default:
+    fprintf(stderr, "system call %lu is implemented in lab 6, rip=%#lx\n",
+            (unsigned long)nr, (unsigned long)c->rip);
+    break;
 #endif
-    }
-    c->r[RAX] = (uint64_t)ret;
-    return 0;
+  }
+  c->r[RAX] = (uint64_t)ret;
+  return 0;
 }
