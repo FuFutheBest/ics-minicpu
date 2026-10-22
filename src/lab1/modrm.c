@@ -49,11 +49,10 @@
  * (frame/decode.c).
  */
 #include "mcpu.h"
+#include <stdint.h>
 
 unsigned modrm_decode(const uint8_t *p, unsigned n, uint8_t rex, modrm_t *m) {
-  /* TODO: decode the ModRM byte p[0], then the SIB byte and the
-   * displacement if the operand has them, and fill every field of *m.
-   *
+  /*
    *   1. mod, sub and reg from p[0]. With mod 3: rm, and base = index =
    *      -1, scale = 1, rip = dsize = 0, disp = 0; return 1.
    *   2. A memory operand: rm = -1, then base, index, scale and rip from
@@ -66,9 +65,101 @@ unsigned modrm_decode(const uint8_t *p, unsigned n, uint8_t rex, modrm_t *m) {
    * Before reading a byte check that it is one of the n bytes at p;
    * return 0 if it is not.
    */
-  (void)p;
-  (void)n;
-  (void)rex;
-  (void)m;
-  todo("modrm_decode");
+
+  unsigned n0 = n;
+
+  if (n < 1)
+    return 0;
+  else
+    n--; // use 1 byte for modrm
+
+  uint8_t modrm = p[0];
+  uint8_t mod = (modrm >> 6) & 0x3;
+  uint8_t reg = (modrm >> 3) & 0x7;
+  uint8_t rm = modrm & 0x7;
+
+  m->mod = mod;
+  m->sub = reg;
+  m->reg = reg | ((rex & 0x4) << 1); // REX.R
+
+  if (mod == 3) {
+    m->mod = mod;
+    m->rm = rm | ((rex & 0x1) << 3); // REX.B
+    m->base = -1;
+    m->index = -1;
+    m->scale = 1;
+    m->rip = 0;
+    m->dsize = 0;
+    m->disp = 0;
+    return 1;
+  }
+
+  m->rm = -1;
+  m->base = -1;
+  m->index = -1;
+  m->scale = 1;
+  m->rip = 0;
+
+  if (rm == 4) {
+    if (n < 1)
+      return 0;
+    else
+      n--; // use 1 byte for SIB
+
+    uint8_t sib = p[1];
+    uint8_t scale = (sib >> 6) & 0x3;
+    uint8_t s_index = (sib >> 3) & 0x7;
+    uint8_t index = s_index | ((rex & 0x2) << 2); // REX.X
+    uint8_t s_base = sib & 0x7;
+    uint8_t base = s_base | ((rex & 0x1) << 3); // REX.B
+
+    m->scale = 1 << scale;
+    if (index == 4) {
+      m->scale = 1;
+    } else {
+      m->index = index;
+    }
+    if (!(s_base == 5 && mod == 0)) {
+      m->base = base;
+    }
+
+  } else {
+    if (rm == 5 && mod == 0) {
+      m->rip = 1;
+    } else {
+      m->base = rm | ((rex & 0x1) << 3); // REX.B
+    }
+  }
+
+  unsigned n1 = n;
+  uint8_t dsize = 0;
+  switch (mod) {
+  case 0:
+    if (m->base == -1) {
+      dsize = 4;
+    } else {
+      dsize = 0;
+    }
+    break;
+  case 1:
+    dsize = 1;
+    break;
+  case 2:
+    dsize = 4;
+    break;
+  }
+
+  if (n < dsize)
+    return 0;
+  else
+    n -= dsize;
+
+  m->dsize = dsize;
+  uint64_t disp = 0;
+  for (int i = 0; i < dsize; i++) {
+    disp |= (uint64_t)p[n0 - n1 + i] << (8 * i);
+  }
+  m->disp = dsize ? sext(disp, dsize) : 0;
+
+  return (n0 - n);
 }
