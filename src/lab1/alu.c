@@ -235,7 +235,7 @@ uint64_t x86_shift(uint64_t *f, int sub, uint64_t v, unsigned n, int size) {
 
 void x86_mul(uint64_t *f, int sub, uint64_t a, uint64_t b, int size,
              uint64_t *lo, uint64_t *hi) {
-  /* TODO: the product of the low size bytes of a and b, 2 * size bytes
+  /* the product of the low size bytes of a and b, 2 * size bytes
    * long; sub is 4 mul (unsigned), 5 imul (signed).
    *
    *   1. Extend a and b to the full product width: zero-extended for
@@ -256,14 +256,41 @@ void x86_mul(uint64_t *f, int sub, uint64_t a, uint64_t b, int size,
    *   imul  0x40 * 0x02 = 0x0080   lo 0x80, hi 0x00   CF OF SF   (128 is not an
    * int8_t)
    */
-  (void)f;
-  (void)sub;
-  (void)a;
-  (void)b;
-  (void)size;
-  (void)lo;
-  (void)hi;
-  todo("x86_mul");
+
+  unsigned __int128 res;
+  switch (sub) {
+  case 4: { /* 4 mul */
+    unsigned __int128 ta = (unsigned __int128)trunc_val(a, size);
+    unsigned __int128 tb = (unsigned __int128)trunc_val(b, size);
+    res = ta * tb;
+    *lo = res & trunc_val(~0ULL, size);
+    *hi = (res >> (size * 8)) & trunc_val(~0ULL, size);
+    if (*hi != 0) {
+      *f = flag(*f, CF, 1);
+      *f = flag(*f, OF, 1);
+    } else {
+      *f = flag(*f, CF, 0);
+      *f = flag(*f, OF, 0);
+    }
+    break;
+  }
+  default: { /* 5 imul */
+    signed __int128 ta = (signed __int128)sext(a, size);
+    signed __int128 tb = (signed __int128)sext(b, size);
+    res = ta * tb;
+    *lo = res & trunc_val(~0ULL, size);
+    *hi = (res >> (size * 8)) & trunc_val(~0ULL, size);
+    if ((signed __int128)res != (signed __int128)sext(*lo, size)) {
+      *f = flag(*f, CF, 1);
+      *f = flag(*f, OF, 1);
+    } else {
+      *f = flag(*f, CF, 0);
+      *f = flag(*f, OF, 0);
+    }
+    break;
+  }
+  }
+  *f = x86_szp(*f, *lo, size);
 }
 
 int x86_div(int sub, uint64_t hi, uint64_t lo, uint64_t v, int size,
