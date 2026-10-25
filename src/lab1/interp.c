@@ -28,6 +28,7 @@
  *
  * mcpu.h has the contract of both functions and of every helper.
  */
+#include <stdio.h>
 #include <string.h>
 
 #include "mcpu.h"
@@ -36,7 +37,7 @@
 #define Y c->Y
 
 int cond(uint64_t f, int cc) {
-  /* TODO: return 1 if condition cc & 0xf holds under the flags f, else 0.
+  /* return 1 if condition cc & 0xf holds under the flags f, else 0.
    * The flags are the bits CF, PF, ZF, SF and OF of f.
    *
    *   0 o    OF              1 no   !OF
@@ -48,9 +49,43 @@ int cond(uint64_t f, int cc) {
    *   c l    SF != OF        d ge   SF == OF
    *   e le   ZF or SF != OF  f g    !ZF and SF == OF
    */
-  (void)f;
-  (void)cc;
-  todo("cond");
+  switch (cc & 0xf) {
+  case 0:
+    return (f & OF) != 0;
+  case 1:
+    return (f & OF) == 0;
+  case 2:
+    return (f & CF) != 0;
+  case 3:
+    return (f & CF) == 0;
+  case 4:
+    return (f & ZF) != 0;
+  case 5:
+    return (f & ZF) == 0;
+  case 6:
+    return ((f & CF) != 0) || ((f & ZF) != 0);
+  case 7:
+    return ((f & CF) == 0) && ((f & ZF) == 0);
+  case 8:
+    return (f & SF) != 0;
+  case 9:
+    return (f & SF) == 0;
+  case 10:
+    return (f & PF) != 0;
+  case 11:
+    return (f & PF) == 0;
+  case 12:
+    return ((f & SF) != 0) != ((f & OF) != 0);
+  case 13:
+    return ((f & SF) != 0) == ((f & OF) != 0);
+  case 14:
+    return ((f & ZF) != 0) || (((f & SF) != 0) != ((f & OF) != 0));
+  case 15:
+    return ((f & ZF) == 0) && (((f & SF) != 0) == ((f & OF) != 0));
+  default:
+    perror("Unknown condition code.");
+    return -1;
+  }
 }
 
 void interp_run(mcpu *c) {
