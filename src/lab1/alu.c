@@ -33,9 +33,10 @@
  * (frame/x86rest.c, frame/compute.c).
  */
 #include "mcpu.h"
+#include <stdint.h>
 
 uint64_t x86_szp(uint64_t f, uint64_t r, int size) {
-  /* TODO: return f with ZF, SF and PF set from the size-byte result r;
+  /* return f with ZF, SF and PF set from the size-byte result r;
    * every other bit of f stays as it is.
    *
    *   ZF  the low size bytes of r are all zero
@@ -47,20 +48,23 @@ uint64_t x86_szp(uint64_t f, uint64_t r, int size) {
    *   r = 0x80     SF          (one bit set: odd parity)
    *   r = 0x03     PF
    */
-  (void)f;
-  (void)r;
-  (void)size;
-  todo("x86_szp");
+  uint64_t sf = msb(size) & r;
+  uint64_t zf = trunc_val(r, size) == 0;
+  uint64_t pf = parity(r);
+  f = flag(f, SF, sf != 0); // implictly truncate sf(64 bits) to int(32 bits)
+  f = flag(f, ZF, zf);
+  f = flag(f, PF, pf);
+  return f;
 }
 
 uint64_t x86_logic(uint64_t *f, uint64_t r, int size) {
-  /* TODO: r is the result of and, or, xor or test. Set ZF, SF and PF
+  /* r is the result of and, or, xor or test. Set ZF, SF and PF
    * from it, clear CF and OF, and return r truncated to size bytes.
    */
-  (void)f;
-  (void)r;
-  (void)size;
-  todo("x86_logic");
+  *f = x86_szp(*f, r, size);
+  *f = flag(*f, CF, 0);
+  *f = flag(*f, OF, 0);
+  return trunc_val(r, size);
 }
 
 uint64_t x86_add(uint64_t *f, uint64_t a, uint64_t b, int size, int carry) {
@@ -90,7 +94,7 @@ uint64_t x86_add(uint64_t *f, uint64_t a, uint64_t b, int size, int carry) {
 }
 
 uint64_t x86_sub(uint64_t *f, uint64_t a, uint64_t b, int size, int borrow) {
-  /* TODO: r = a - b - borrow on size bytes; set the five flags in *f and
+  /* r = a - b - borrow on size bytes; set the five flags in *f and
    * return r truncated to size bytes. Truncate a and b first.
    *
    *   ZF SF PF  x86_szp
@@ -106,12 +110,12 @@ uint64_t x86_sub(uint64_t *f, uint64_t a, uint64_t b, int size, int borrow) {
    * and with borrow 1:
    *   0x05 - 0xff = 0x05   CF PF
    */
-  (void)f;
-  (void)a;
-  (void)b;
-  (void)size;
-  (void)borrow;
-  todo("x86_sub");
+  uint64_t ta = trunc_val(a, size), tb = trunc_val(b, size);
+  uint64_t r = trunc_val(ta - tb - (uint64_t)borrow, size);
+  *f = x86_szp(*f, r, size);
+  *f = flag(*f, CF, ta < tb || (borrow && ta == tb));
+  *f = flag(*f, OF, ((ta ^ tb) & ~(tb ^ r) & msb(size)) != 0);
+  return r;
 }
 
 uint64_t x86_inc(uint64_t *f, uint64_t v, int size) {
@@ -130,30 +134,27 @@ uint64_t x86_inc(uint64_t *f, uint64_t v, int size) {
 }
 
 uint64_t x86_dec(uint64_t *f, uint64_t v, int size) {
-  /* TODO: v - 1 on size bytes, with x86_sub; CF as it was, as in x86_inc.
+  /* v - 1 on size bytes, with x86_sub; CF as it was, as in x86_inc.
    *
    * Examples, size 1:
    *   0x00 - 1 = 0xff   SF PF, CF as before (sub would set it)
    *   0x80 - 1 = 0x7f   OF, CF as before
    */
-  (void)f;
-  (void)v;
-  (void)size;
-  todo("x86_dec");
+  uint64_t cf = *f & CF;
+  uint64_t r = x86_sub(f, v, 1, size, 0);
+  *f = (*f & ~(uint64_t)CF) | cf;
+  return r;
 }
 
 uint64_t x86_neg(uint64_t *f, uint64_t v, int size) {
-  /* TODO: 0 - v on size bytes: the result and all five flags of x86_sub.
+  /* 0 - v on size bytes: the result and all five flags of x86_sub.
    *
    * Examples, size 1:
    *   0 - 0x01 = 0xff   CF SF PF
    *   0 - 0x00 = 0x00   ZF PF
    *   0 - 0x80 = 0x80   CF OF SF
    */
-  (void)f;
-  (void)v;
-  (void)size;
-  todo("x86_neg");
+  return x86_sub(f, 0, v, size, 0);
 }
 
 uint64_t x86_shift(uint64_t *f, int sub, uint64_t v, unsigned n, int size) {
