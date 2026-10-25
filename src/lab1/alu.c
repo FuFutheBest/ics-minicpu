@@ -34,6 +34,7 @@
  */
 #include "mcpu.h"
 #include <stdint.h>
+#include <unistd.h>
 
 uint64_t x86_szp(uint64_t f, uint64_t r, int size) {
   /* return f with ZF, SF and PF set from the size-byte result r;
@@ -166,10 +167,20 @@ uint64_t x86_shift(uint64_t *f, int sub, uint64_t v, unsigned n, int size) {
    *   2. If n is now 0, return v: no flag changes.
    *   3. Compute the result r, the last bit shifted out (CF) and OF:
    *
-   *        shl  r = v << n          CF = bit (size * 8 - n) of v    OF = top
-   * bit of r != CF shr  r = v >> n          CF = bit (n - 1) of v           OF
-   * = top bit of v sar  r = v >> n, signed  CF = bit (n - 1) of v, signed   OF
-   * = 0
+   *      shl:
+   *        r  = v << n
+   *        CF = bit (size * 8 - n) of v
+   *        OF = (top bit of r != CF)
+   *
+   *      shr:
+   *        r  = v >> n
+   *        CF = bit (n - 1) of v
+   *        OF = top bit of v
+   *
+   *      sar:
+   *        r  = v >> n, signed
+   *        CF = bit (n - 1) of v, signed
+   *        OF = 0
    *
    *      "signed" is v sign-extended from size bytes: sext(v, size).
    *      On 1 and 2 bytes n can exceed the width of the operand: shl
@@ -186,7 +197,7 @@ uint64_t x86_shift(uint64_t *f, int sub, uint64_t v, unsigned n, int size) {
    *   shl 0x01 by 9 = 0x00   ZF PF
    */
   unsigned bits = (unsigned)size * 8;
-  n &= size == 8 ? 63 : 31;
+  n &= ((size == 8) ? 63 : 31);
   v = trunc_val(v, size);
   if (!n)
     return v; /* flags unchanged */
@@ -194,16 +205,27 @@ uint64_t x86_shift(uint64_t *f, int sub, uint64_t v, unsigned n, int size) {
   int cf, of;
   switch (sub) {
   case 5: /* shr */
-    /* TODO: cf, r and of of shr, by the table of step 3 */
-    todo("shr in x86_shift");
+  {
+    r = trunc_val(v >> n, size);
+    cf = (v >> (n - 1)) & 1;
+    of = (v & msb(size)) != 0;
+    break;
+  }
   case 7: /* sar */
-    /* TODO: cf, r and of of sar, by the table of step 3 */
-    todo("sar in x86_shift");
+  {
+    int64_t sv = sext(v, size);
+    r = trunc_val((uint64_t)(sv >> n), size);
+    cf = sv >> (n - 1) & 1;
+    of = 0;
+    break;
+  }
   default: /* shl, sal */
+  {
     cf = n <= bits ? (int)(v >> (bits - n)) & 1 : 0;
     r = trunc_val(v << n, size);
     of = !!(r & msb(size)) ^ cf;
     break;
+  }
   }
   *f = x86_szp(*f, r, size);
   *f = flag(*f, CF, cf);
