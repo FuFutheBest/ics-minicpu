@@ -28,6 +28,7 @@
  *
  * mcpu.h has the contract of both functions and of every helper.
  */
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -225,6 +226,27 @@ void interp_run(mcpu *c) {
       R[RSP] -= 8;
       break;
 
+    /* pop: the register is (op & 7) | ((x.rex & 1) << 3) */
+    case 0x58:
+    case 0x59:
+    case 0x5a:
+    case 0x5b:
+    case 0x5c:
+    case 0x5d:
+    case 0x5e:
+    case 0x5f:
+      v = load(&x, R[RSP], 8);
+      R[RSP] += 8;
+      R[(op & 7) | ((x.rex & 1) << 3)] = v;
+      break;
+
+    /* ret */
+    case 0xc3:
+      v = load(&x, R[RSP], 8);
+      R[RSP] += 8;
+      R[RIP] = v;
+      break;
+
     /* jmp: a 1-byte offset (0xeb) or a 4-byte offset (0xe9) */
     case 0xeb:
       rel = (int8_t)fetch8(&x);
@@ -234,8 +256,6 @@ void interp_run(mcpu *c) {
       rel = (int32_t)fetch32(&x);
       R[RIP] += (uint64_t)rel;
       break;
-
-    /* TODO: part 3, the other cases of the integer list above */
 
     /* vphaddd, xmm only: reg = { v0+v1, v2+v3, rm0+rm1, rm2+rm3 } */
     case 0x1202:
