@@ -325,6 +325,14 @@ void interp_run(mcpu *c) {
       set(&x, (op & 7) | ((x.rex & 1) << 3), v);
       break;
 
+    /* call: rel = (int32_t)fetch32(&x); push R[RIP], then jump */
+    case 0xe8:
+      rel = (int32_t)fetch32(&x);
+      store(&x, R[RSP] - 8, 8, R[RIP]);
+      R[RSP] -= 8;
+      R[RIP] += (uint64_t)rel;
+      break;
+
     /* jmp: a 1-byte offset (0xeb) or a 4-byte offset (0xe9) */
     case 0xeb:
       rel = (int8_t)fetch8(&x);
@@ -333,6 +341,50 @@ void interp_run(mcpu *c) {
     case 0xe9:
       rel = (int32_t)fetch32(&x);
       R[RIP] += (uint64_t)rel;
+      break;
+
+    /* jcc: a 1-byte offset */
+    case 0x70:
+    case 0x71:
+    case 0x72:
+    case 0x73:
+    case 0x74:
+    case 0x75:
+    case 0x76:
+    case 0x77:
+    case 0x78:
+    case 0x79:
+    case 0x7a:
+    case 0x7b:
+    case 0x7c:
+    case 0x7d:
+    case 0x7e:
+    case 0x7f:
+      rel = (int8_t)fetch8(&x);
+      if (cond(R[RFLAGS], op))
+        R[RIP] += (uint64_t)rel;
+      break;
+
+    /* jcc: a 4-byte offset (0x180 .. 0x18f) */
+    case 0x180:
+    case 0x181:
+    case 0x182:
+    case 0x183:
+    case 0x184:
+    case 0x185:
+    case 0x186:
+    case 0x187:
+    case 0x188:
+    case 0x189:
+    case 0x18a:
+    case 0x18b:
+    case 0x18c:
+    case 0x18d:
+    case 0x18e:
+    case 0x18f:
+      rel = (int32_t)fetch32(&x);
+      if (cond(R[RFLAGS], op & 0xf))
+        R[RIP] += (uint64_t)rel;
       break;
 
     /* vphaddd, xmm only: reg = { v0+v1, v2+v3, rm0+rm1, rm2+rm3 } */
