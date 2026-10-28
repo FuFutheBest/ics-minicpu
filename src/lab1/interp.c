@@ -387,6 +387,40 @@ void interp_run(mcpu *c) {
         R[RIP] += (uint64_t)rel;
       break;
 
+    /* vpxor: reg = v ^ rm */
+    case 0x11ef:
+      modrm(&x);
+      rm_vget(&x, &b, x.vlen);
+      for (int i = 0; i < 4; ++i)
+        r.q[i] = Y[x.v].q[i] ^ b.q[i];
+      vset(&x, x.reg, &r, x.vlen);
+      break;
+
+    /* vmovdqu: reg <- rm (register or memory) */
+    case 0x116f:
+      modrm(&x);
+      rm_vget(&x, &r, x.vlen);
+      vset(&x, x.reg, &r, x.vlen);
+      break;
+
+    /* vpaddd: reg = v + rm, lane by lane, vlen / 4 lanes */
+    case 0x11fe:
+      modrm(&x);
+      rm_vget(&x, &b, x.vlen);
+      for (int i = 0; i < (x.vlen / 4); ++i)
+        r.d[i] = Y[x.v].d[i] + b.d[i];
+      vset(&x, x.reg, &r, x.vlen);
+      break;
+
+    /* xpmulld: reg = v * rm, low 32 bits of each product */
+    case 0x1240:
+      modrm(&x);
+      rm_vget(&x, &b, x.vlen);
+      for (int i = 0; i < (x.vlen / 4); ++i)
+        r.d[i] = (uint32_t)(Y[x.v].d[i] * b.d[i]);
+      vset(&x, x.reg, &r, x.vlen);
+      break;
+
     /* vphaddd, xmm only: reg = { v0+v1, v2+v3, rm0+rm1, rm2+rm3 } */
     case 0x1202:
       modrm(&x);
@@ -411,7 +445,12 @@ void interp_run(mcpu *c) {
       rm_vset(&x, &r, 16);
       break;
 
-      /* TODO: part 4, the other five vector instructions */
+    /* vmovd: 32-bit rm (register or memory) <- lane 0 of xmm reg */
+    case 0x117e:
+      modrm(&x);
+      x.size = 4;
+      rm_set(&x, Y[x.reg].d[0]);
+      break;
 
     default:
       x86_other(&x);
