@@ -201,6 +201,14 @@ void interp_run(mcpu *c) {
     unsigned op = x86_begin(c, &x);
 
     switch (op) {
+
+    /* mov: rm = imm, imm = fetch_imm(&x) */
+    case 0xc7:
+      modrm(&x);
+      v = fetch_imm(&x);
+      rm_set(&x, v);
+      break;
+
     /* the eight operations: rm = rm OP imm; the number of the
        operation is x.sub, and cmp (7) writes no operand */
     case 0x81:
