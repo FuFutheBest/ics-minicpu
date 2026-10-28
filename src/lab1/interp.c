@@ -312,6 +312,19 @@ void interp_run(mcpu *c) {
       x86_logic(&R[RFLAGS], rm_get(&x) & get(&x, x.reg), x.size);
       break;
 
+    /* register = imm; imm = fetch64(&x) when x.size is 8, else fetch_imm(&x) */
+    case 0xb8:
+    case 0xb9:
+    case 0xba:
+    case 0xbb:
+    case 0xbc:
+    case 0xbd:
+    case 0xbe:
+    case 0xbf:
+      v = (x.size == 8) ? fetch64(&x) : fetch_imm(&x);
+      set(&x, (op & 7) | ((x.rex & 1) << 3), v);
+      break;
+
     /* jmp: a 1-byte offset (0xeb) or a 4-byte offset (0xe9) */
     case 0xeb:
       rel = (int8_t)fetch8(&x);
