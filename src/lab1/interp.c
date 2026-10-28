@@ -268,90 +268,34 @@ void interp_run(mcpu *c) {
       set(&x, x.reg, v);
       break;
 
-    /* rm = rm OP reg */
+    /* rm = rm OP reg; cmp only updates flags */
     case 0x01: // add
-      modrm(&x);
-      v = x86_add(&R[RFLAGS], rm_get(&x), get(&x, x.reg), x.size, 0);
-      rm_set(&x, v);
-      break;
     case 0x09: // or
-      modrm(&x);
-      v = x86_logic(&R[RFLAGS], rm_get(&x) | get(&x, x.reg), x.size);
-      rm_set(&x, v);
-      break;
     case 0x11: // adc
-      modrm(&x);
-      v = x86_add(&R[RFLAGS], rm_get(&x), get(&x, x.reg), x.size,
-                  (R[RFLAGS] & CF) != 0);
-      rm_set(&x, v);
-      break;
     case 0x19: // sbb
-      modrm(&x);
-      v = x86_sub(&R[RFLAGS], rm_get(&x), get(&x, x.reg), x.size,
-                  (R[RFLAGS] & CF) != 0);
-      rm_set(&x, v);
-      break;
     case 0x21: // and
-      modrm(&x);
-      v = x86_logic(&R[RFLAGS], rm_get(&x) & get(&x, x.reg), x.size);
-      rm_set(&x, v);
-      break;
     case 0x29: // sub
-      modrm(&x);
-      v = x86_sub(&R[RFLAGS], rm_get(&x), get(&x, x.reg), x.size, 0);
-      rm_set(&x, v);
-      break;
     case 0x31: // xor
-      modrm(&x);
-      v = x86_logic(&R[RFLAGS], rm_get(&x) ^ get(&x, x.reg), x.size);
-      rm_set(&x, v);
-      break;
     case 0x39: // cmp
       modrm(&x);
-      x86_sub(&R[RFLAGS], rm_get(&x), get(&x, x.reg), x.size, 0);
+      v = x86_alu(&R[RFLAGS], op >> 3, rm_get(&x), get(&x, x.reg), x.size);
+      if ((op >> 3) != 7)
+        rm_set(&x, v);
       break;
 
-    /* reg = reg OP rm  */
+    /* reg = reg OP rm; cmp only updates flags */
     case 0x03: // add
-      modrm(&x);
-      v = x86_add(&R[RFLAGS], get(&x, x.reg), rm_get(&x), x.size, 0);
-      set(&x, x.reg, v);
-      break;
     case 0x0b: // or
-      modrm(&x);
-      v = x86_logic(&R[RFLAGS], get(&x, x.reg) | rm_get(&x), x.size);
-      set(&x, x.reg, v);
-      break;
     case 0x13: // adc
-      modrm(&x);
-      v = x86_add(&R[RFLAGS], get(&x, x.reg), rm_get(&x), x.size,
-                  (R[RFLAGS] & CF) != 0);
-      set(&x, x.reg, v);
-      break;
     case 0x1b: // sbb
-      modrm(&x);
-      v = x86_sub(&R[RFLAGS], get(&x, x.reg), rm_get(&x), x.size,
-                  (R[RFLAGS] & CF) != 0);
-      set(&x, x.reg, v);
-      break;
     case 0x23: // and
-      modrm(&x);
-      v = x86_logic(&R[RFLAGS], get(&x, x.reg) & rm_get(&x), x.size);
-      set(&x, x.reg, v);
-      break;
     case 0x2b: // sub
-      modrm(&x);
-      v = x86_sub(&R[RFLAGS], get(&x, x.reg), rm_get(&x), x.size, 0);
-      set(&x, x.reg, v);
-      break;
     case 0x33: // xor
-      modrm(&x);
-      v = x86_logic(&R[RFLAGS], get(&x, x.reg) ^ rm_get(&x), x.size);
-      set(&x, x.reg, v);
-      break;
     case 0x3b: // cmp
       modrm(&x);
-      x86_sub(&R[RFLAGS], get(&x, x.reg), rm_get(&x), x.size, 0);
+      v = x86_alu(&R[RFLAGS], op >> 3, get(&x, x.reg), rm_get(&x), x.size);
+      if ((op >> 3) != 7)
+        set(&x, x.reg, v);
       break;
 
     /* test: the flags of rm & reg; no operand is written */
