@@ -1,7 +1,7 @@
 [
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/dram.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/cpu/x86.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -9,17 +9,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/dram.c"
+      "frame/cpu/x86.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/frames.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/cpu/x86rest.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -27,17 +29,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/frames.c"
+      "frame/cpu/x86rest.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/mem.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/cpu/arith.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -45,17 +49,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/mem.c"
+      "frame/cpu/arith.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/trap.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/cpu/simd.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -63,17 +69,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/trap.c"
+      "frame/cpu/simd.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/commit.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/cpu/commit.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -81,17 +89,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/commit.c"
+      "frame/cpu/commit.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/loader.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/cpu/mem.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -99,17 +109,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/loader.c"
+      "frame/cpu/mem.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/arith.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/cpu/cr3.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -117,17 +129,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/arith.c"
+      "frame/cpu/cr3.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/x86.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/cpu/dram.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -135,17 +149,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/x86.c"
+      "frame/cpu/dram.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/x86rest.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/os/loader.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -153,12 +169,94 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/x86rest.c"
+      "frame/os/loader.c"
+    ]
+  },
+  {
+    "directory": "/home/fufu/Dev/ics/ics-minicpu",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/os/sysbase.c",
+    "arguments": [
+      "gcc",
+      "-std=c11",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-pthread",
+      "-Iinclude",
+      "-Imodel",
+      "-D_GNU_SOURCE",
+      "-DLAB=2",
+      "-pthread",
+      "-c",
+      "frame/os/sysbase.c"
+    ]
+  },
+  {
+    "directory": "/home/fufu/Dev/ics/ics-minicpu",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/os/trap.c",
+    "arguments": [
+      "gcc",
+      "-std=c11",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-pthread",
+      "-Iinclude",
+      "-Imodel",
+      "-D_GNU_SOURCE",
+      "-DLAB=2",
+      "-pthread",
+      "-c",
+      "frame/os/trap.c"
+    ]
+  },
+  {
+    "directory": "/home/fufu/Dev/ics/ics-minicpu",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/os/frames.c",
+    "arguments": [
+      "gcc",
+      "-std=c11",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-pthread",
+      "-Iinclude",
+      "-Imodel",
+      "-D_GNU_SOURCE",
+      "-DLAB=2",
+      "-pthread",
+      "-c",
+      "frame/os/frames.c"
+    ]
+  },
+  {
+    "directory": "/home/fufu/Dev/ics/ics-minicpu",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/os/copy.c",
+    "arguments": [
+      "gcc",
+      "-std=c11",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-pthread",
+      "-Iinclude",
+      "-Imodel",
+      "-D_GNU_SOURCE",
+      "-DLAB=2",
+      "-pthread",
+      "-c",
+      "frame/os/copy.c"
     ]
   },
   {
@@ -171,10 +269,12 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
       "frame/memtrace.c"
     ]
@@ -189,10 +289,12 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
       "frame/translate.c"
     ]
@@ -207,17 +309,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
       "frame/disasm.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/sysbase.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/cpu/pagemap.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -225,17 +329,19 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/sysbase.c"
+      "frame/cpu/pagemap.c"
     ]
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/simd.c",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/os/pagemap.c",
     "arguments": [
       "gcc",
       "-std=c11",
@@ -243,48 +349,14 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
-      "frame/simd.c"
-    ]
-  },
-  {
-    "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/pagemap.c",
-    "arguments": [
-      "gcc",
-      "-std=c11",
-      "-O2",
-      "-g",
-      "-Wall",
-      "-Wextra",
-      "-Iinclude",
-      "-Imodel",
-      "-D_GNU_SOURCE",
-      "-DLAB=1",
-      "-c",
-      "frame/pagemap.c"
-    ]
-  },
-  {
-    "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/frame/nocache.c",
-    "arguments": [
-      "gcc",
-      "-std=c11",
-      "-O2",
-      "-g",
-      "-Wall",
-      "-Wextra",
-      "-Iinclude",
-      "-Imodel",
-      "-D_GNU_SOURCE",
-      "-DLAB=1",
-      "-c",
-      "frame/nocache.c"
+      "frame/os/pagemap.c"
     ]
   },
   {
@@ -297,10 +369,12 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
       "frame/main.c"
     ]
@@ -315,10 +389,12 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
       "src/lab1/alu.c"
     ]
@@ -333,10 +409,12 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
       "src/lab1/interp.c"
     ]
@@ -351,12 +429,34 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
       "src/lab1/modrm.c"
+    ]
+  },
+  {
+    "directory": "/home/fufu/Dev/ics/ics-minicpu",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/src/lab2/cache.c",
+    "arguments": [
+      "gcc",
+      "-std=c11",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-pthread",
+      "-Iinclude",
+      "-Imodel",
+      "-D_GNU_SOURCE",
+      "-DLAB=2",
+      "-pthread",
+      "-c",
+      "src/lab2/cache.c"
     ]
   },
   {
@@ -369,10 +469,12 @@
       "-g",
       "-Wall",
       "-Wextra",
+      "-pthread",
       "-Iinclude",
       "-Imodel",
       "-D_GNU_SOURCE",
-      "-DLAB=1",
+      "-DLAB=2",
+      "-pthread",
       "-c",
       "tests/unit.c"
     ]
@@ -631,28 +733,23 @@
   },
   {
     "directory": "/home/fufu/Dev/ics/ics-minicpu",
-    "file": "/home/fufu/Dev/ics/ics-minicpu/guest/start.S",
+    "file": "/home/fufu/Dev/ics/ics-minicpu/guest/rowcol.c",
     "arguments": [
       "gcc",
       "-std=c11",
-      "-O2",
+      "-Og",
       "-fno-pic",
       "-no-pie",
       "-nostdlib",
       "-nostdinc",
       "-ffreestanding",
-      "-msse2",
-      "-mno-avx",
-      "-mfpmath=sse",
-      "-fno-tree-vectorize",
-      "-fno-math-errno",
-      "-fno-tree-loop-distribute-patterns",
+      "-mno-sse",
       "-fno-asynchronous-unwind-tables",
       "-fno-stack-protector",
       "-Wall",
       "-Iguest",
       "-c",
-      "guest/start.S"
+      "guest/rowcol.c"
     ]
   },
   {
