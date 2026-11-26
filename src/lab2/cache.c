@@ -259,7 +259,7 @@ static uint64_t cache_line_address(uint64_t tag, unsigned set_index) {
 }
 
 static cache_line *cache_lookup(unsigned set_index, uint64_t tag) {
-  /* TODO: return the way of set set_index that holds the line with this
+  /* return the way of set set_index that holds the line with this
    * tag, or NULL if no way of the set holds it.
    *
    * The ways of the set are the cache_way_count lines
@@ -275,13 +275,18 @@ static cache_line *cache_lookup(unsigned set_index, uint64_t tag) {
    * This function only searches: it changes no counter and no last_use.
    * cache_access decides what a hit or a miss does.
    */
-  (void)set_index;
-  (void)tag;
-  todo("cache_lookup");
+  cache_line *c = NULL;
+  for (size_t way = 0; way < cache_way_count; ++way) {
+    c = &cache_lines[set_index * cache_way_count + way];
+    if (c->valid && c->tag == tag) {
+      return c;
+    }
+  }
+  return NULL;
 }
 
 static cache_line *cache_victim(unsigned set_index) {
-  /* TODO: return the way of set set_index that a miss in this set
+  /* return the way of set set_index that a miss in this set
    * replaces.
    *
    *   1. If a way of the set is invalid (empty), return it; with several,
@@ -299,8 +304,17 @@ static cache_line *cache_victim(unsigned set_index) {
    * This function only chooses: the victim may be dirty, and writing it
    * back is the work of cache_fill. No counter changes here.
    */
-  (void)set_index;
-  todo("cache_victim");
+  cache_line *lru = NULL, *c = NULL;
+  for (size_t way = 0; way < cache_way_count; ++way) {
+    c = &cache_lines[set_index * cache_way_count + way];
+    if (!c->valid) {
+      return c;
+    }
+    if (lru == NULL || c->last_use < lru->last_use) {
+      lru = c;
+    }
+  }
+  return lru;
 }
 
 static void cache_fill(cache_line *victim, unsigned set_index, uint64_t tag) {
