@@ -219,7 +219,7 @@ void cache_init(unsigned sets, unsigned ways) {
 }
 
 static unsigned cache_set_index(uint64_t pa) {
-  /* TODO: return the set index of physical address pa.
+  /* return the set index of physical address pa.
    *
    * The line number is pa / LINE_SIZE; the set index is the line number
    * modulo cache_set_count (section 2). Every byte of a line has the
@@ -228,12 +228,11 @@ static unsigned cache_set_index(uint64_t pa) {
    * cache_init has set cache_set_count to 1 or more before any access,
    * so the division is defined.
    */
-  (void)pa;
-  todo("cache_set_index");
+  return (pa / LINE_SIZE) % cache_set_count;
 }
 
 static uint64_t cache_tag(uint64_t pa) {
-  /* TODO: return the tag of physical address pa: the line number
+  /* return the tag of physical address pa: the line number
    * pa / LINE_SIZE divided by cache_set_count.
    *
    * Together, the set index and the tag name the line: two addresses
@@ -241,12 +240,11 @@ static uint64_t cache_tag(uint64_t pa) {
    * line. With 64 sets, 0x12345 has tag 0x12 and 0x13345 tag 0x13
    * (both have set index 13: they compete for the ways of set 13).
    */
-  (void)pa;
-  todo("cache_tag");
+  return (pa / LINE_SIZE) / cache_set_count;
 }
 
 static uint64_t cache_line_address(uint64_t tag, unsigned set_index) {
-  /* TODO: return the physical address of the first byte of the line
+  /* return the physical address of the first byte of the line
    * with this tag in set set_index:
    *
    *     (tag * cache_set_count + set_index) * LINE_SIZE
@@ -257,9 +255,7 @@ static uint64_t cache_line_address(uint64_t tag, unsigned set_index) {
    * cache_flush need this address to write a dirty line back to the
    * place in DRAM it came from, and cache_fill to read a new line.
    */
-  (void)tag;
-  (void)set_index;
-  todo("cache_line_address");
+  return (tag * cache_set_count + set_index) * LINE_SIZE;
 }
 
 static cache_line *cache_lookup(unsigned set_index, uint64_t tag) {
