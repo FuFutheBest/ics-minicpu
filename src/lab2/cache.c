@@ -156,6 +156,7 @@
  *   here. Every other function and variable is static: only this file
  *   uses them, and their names cannot clash with those of the other labs.
  */
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -318,7 +319,7 @@ static cache_line *cache_victim(unsigned set_index) {
 }
 
 static void cache_fill(cache_line *victim, unsigned set_index, uint64_t tag) {
-  /* TODO: the work of a miss. victim is the way cache_victim chose in
+  /* the work of a miss. victim is the way cache_victim chose in
    * set set_index; afterwards it holds the line with this tag.
    *
    *   1. If victim is valid and dirty, its bytes are newer than DRAM:
@@ -337,14 +338,18 @@ static void cache_fill(cache_line *victim, unsigned set_index, uint64_t tag) {
    *
    * cache_misses and last_use are left to cache_access.
    */
-  (void)victim;
-  (void)set_index;
-  (void)tag;
-  todo("cache_fill");
+  if (victim->valid && victim->dirty) {
+    dram_line_write(cache_line_address(victim->tag, set_index), victim->data);
+    cache_writebacks++;
+  }
+  dram_line_read(cache_line_address(tag, set_index), victim->data);
+  victim->valid = 1;
+  victim->dirty = 0;
+  victim->tag = tag;
 }
 
 static cache_line *cache_access(uint64_t pa) {
-  /* TODO: find the line that holds physical address pa, bringing it in
+  /* find the line that holds physical address pa, bringing it in
    * on a miss, and return it. This is the one lookup that cache_read
    * and cache_write share; pa may be any byte of the line.
    *
@@ -362,12 +367,23 @@ static cache_line *cache_access(uint64_t pa) {
    * line->dirty. Every call is one line access: a hit moves nothing, a
    * miss one or two lines.
    */
-  (void)pa;
-  todo("cache_access");
+  unsigned set_index = cache_set_index(pa);
+  uint64_t tag = cache_tag(pa);
+  cache_line *line = cache_lookup(set_index, tag);
+  if (line == NULL) {
+    cache_misses++;
+    line = cache_victim(set_index);
+    cache_fill(line, set_index, tag);
+  } else {
+    cache_hits++;
+  };
+  cache_use_clock++;
+  line->last_use = cache_use_clock;
+  return line;
 }
 
 void cache_read(uint64_t pa, void *dst, unsigned nbytes) {
-  /* TODO: copy nbytes bytes at physical address pa to dst, through the
+  /* copy nbytes bytes at physical address pa to dst, through the
    * cache.
    *
    * The bytes lie within one line: pa % LINE_SIZE + nbytes is at most
@@ -383,14 +399,13 @@ void cache_read(uint64_t pa, void *dst, unsigned nbytes) {
    * A call is one line access: one hit or one miss. Reading changes no
    * dirty bit.
    */
-  (void)pa;
-  (void)dst;
-  (void)nbytes;
-  todo("cache_read");
+  assert(((pa % LINE_SIZE + nbytes) <= LINE_SIZE) && (nbytes >= 1));
+  cache_line *line = cache_access(pa);
+  memcpy(dst, line->data + (pa % LINE_SIZE), nbytes);
 }
 
 void cache_write(uint64_t pa, const void *src, unsigned nbytes) {
-  /* TODO: copy nbytes bytes from src to physical address pa, through the
+  /* copy nbytes bytes from src to physical address pa, through the
    * cache: cache_read with the copy in the other direction. The bytes
    * lie within one line, as for cache_read.
    *
@@ -401,14 +416,13 @@ void cache_write(uint64_t pa, const void *src, unsigned nbytes) {
    *   2. Copy nbytes bytes from src to line->data + pa % LINE_SIZE and
    *      set line->dirty = 1. Nothing goes to DRAM now (write-back).
    */
-  (void)pa;
-  (void)src;
-  (void)nbytes;
-  todo("cache_write");
+  cache_line *line = cache_access(pa);
+  memcpy(line->data + (pa % LINE_SIZE), src, nbytes);
+  line->dirty = 1;
 }
 
 void cache_flush(void) {
-  /* TODO: write every dirty line back to DRAM.
+  /* write every dirty line back to DRAM.
    *
    * For every set_index and every way: if the line is valid and dirty,
    * dram_line_write(cache_line_address(line->tag, set_index), line->data),
@@ -419,5 +433,13 @@ void cache_flush(void) {
    * program exits. Without it, what the program wrote last stays in the
    * cache and never reaches dram.img.
    */
-  todo("cache_flush");
+  cache_line *c;
+  for (size_t i = 0; i < (cache_set_count * cache_way_count); ++i) {
+    c = cache_lines + i;
+    if (c->valid && c->dirty) {
+      dram_line_write(cache_line_address(c->tag, i / cache_way_count), c->data);
+      cache_writebacks++;
+      c->dirty = 0;
+    }
+  }
 }
